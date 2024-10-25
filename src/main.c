@@ -13,14 +13,14 @@ int sign(double num){
     return num > 0 ? 1 : -1;
 }
 
-void run_pid(Vector2* res, double* target_speed){
+void run_pid(graph* g, Vector2* res, double* target_speed){
     double current_speed = 100.0;
 
     double current_acc = -5.0;
     double inc_acc = 1.0;
     double max_acc = 5.0;
 
-    double total_time = WIDTH;
+    double total_time = g->width;
 
     double k_p = 0.1;
     double k_i = 0.001;
@@ -56,8 +56,8 @@ void run_pid(Vector2* res, double* target_speed){
     }
 }
 
-void create_line(Vector2* line, double* val){
-    for (int i = 0; i < WIDTH; i++) {
+void create_line(graph* g, Vector2* line, double* val){
+    for (int i = 0; i < g->width; i++) {
         line[i] = (Vector2){ i, val[i] };
     }
 }
@@ -71,18 +71,15 @@ int main(int argc, char** argv){
         }
     }
 
-    double *target_speed_line = malloc(sizeof(double) * WIDTH);
-    for (int i = 0; i < WIDTH; i++) {
-        target_speed_line[i] = target_speed;
-    }
-
     graph* g = get_graph(20, WIDTH, HEIGHT, BLACK, BLUE);
 
-    Vector2* graph = malloc(sizeof(Vector2) * WIDTH);
-    Vector2* line = malloc(sizeof(Vector2) * WIDTH);
+    Vector2* pid_line = malloc(sizeof(Vector2) * g->width);
+    Vector2* target_line = malloc(sizeof(Vector2) * g->width);
 
-    run_pid(graph, target_speed_line);
-    create_line(line, target_speed_line);
+    double *target_speeds = malloc(sizeof(double) * g->width);
+    for (int i = 0; i < WIDTH; i++) {
+        target_speeds[i] = target_speed;
+    }
 
     SetTargetFPS(24);
 
@@ -91,13 +88,29 @@ int main(int argc, char** argv){
         BeginDrawing();
             ClearBackground(DARKGRAY);
             draw_graph_border(g);
-            draw_to_graph(g, line, RED);
-            draw_to_graph(g, graph, WHITE);
+
+            double delta = GetFrameTime();
+
+            if (IsKeyDown(KEY_J)) {
+                target_speed += 50 * delta;
+            } else if (IsKeyDown(KEY_K)) {
+                target_speed -= 50 * delta;
+            }
+
+            for (int i = 0; i < g->width; i++) {
+                target_speeds[i] = target_speed;
+            }
+
+            run_pid(g, pid_line, target_speeds);
+            create_line(g, target_line, target_speeds);
+
+            draw_to_graph(g, target_line, RED);
+            draw_to_graph(g, pid_line, WHITE);
         EndDrawing();
     }
     free(g);
-    free(line);
-    free(graph);
+    free(target_line);
+    free(pid_line);
     CloseWindow();
     return 0;
 }
