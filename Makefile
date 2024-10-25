@@ -3,14 +3,16 @@ default: main
 CC=clang
 CFLAGS= -Wall -Wextra
 
-SHELL := /bin/bash
-$(shell mkdir -p build)
+BUILD_PATH=./build
+RAYLIB_DIR=./raylib-5.0_linux_amd64
 
-main: ./src/main.c graph
-	$(CC) $(CFLAGS) -o ./build/$@ $< ./build/graph.o -I./include -L./raylib-5.0_linux_amd64/lib/ -I./raylib-5.0_linux_amd64/include -l:libraylib.a -lm
+$(shell test -d $(BUILD_PATH) || mkdir -p $(BUILD_PATH))
 
-graph: ./src/graph.c
-	$(CC) $(CFLAGS) -xc $^ -c -o ./build/graph.o -I./include -I./raylib-5.0_linux_amd64/include/
+main: ./src/main.c $(BUILD_PATH)/graph.o
+	$(CC) $(CFLAGS) -o $(BUILD_PATH)/$@ $^ -I./include -L$(RAYLIB_DIR)/lib/ -I$(RAYLIB_DIR)/include -l:libraylib.a -lm
+
+$(BUILD_PATH)/graph.o: ./src/graph.c
+	$(CC) $(CFLAGS) -xc $^ -c -o $@ -I./include -I$(RAYLIB_DIR)/include/
 
 clean: 
 	rm -rf build
