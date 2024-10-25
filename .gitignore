@@ -5,6 +5,8 @@ __pycache__/
 
 # C extensions
 *.so
+compile_commands.json
+raylib-5.0_linux_amd64/*
 
 # Distribution / packaging
 .Python
