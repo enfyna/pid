@@ -3,13 +3,11 @@
 #include "graph.h"
 
 void draw_to_graph(graph* g, Vector2* line, Color color){
-    Vector2 prev_point = line[0];
-    prev_point.x += g->margin;
-    prev_point.y = g->w_height - g->margin - prev_point.y;
+    Vector2 prev_point;
 
     bool continuous = true;
 
-    for (int x = 1; x < g->w_width; x++) {
+    for (int x = 0; x < g->width; x++) {
         Vector2 point = line[x];
         point.x += g->margin;
         point.y = g->height - point.y;
@@ -18,7 +16,7 @@ void draw_to_graph(graph* g, Vector2* line, Color color){
             continuous = false;
             continue;
         }
-        else if (point.x >= g->w_width - g->margin) {
+        else if (point.x >= g->width + g->margin) {
             continuous = false;
             continue;
         }
@@ -27,12 +25,12 @@ void draw_to_graph(graph* g, Vector2* line, Color color){
             continuous = false;
             continue;
         }
-        else if (point.y >= g->w_height - g->margin) {
+        else if (point.y >= g->height + g->margin) {
             continuous = false;
             continue;
         }
 
-        if (continuous) {
+        if (continuous && x > 0) {
             DrawLine(
                 point.x, point.y,
                 prev_point.x, prev_point.y,
