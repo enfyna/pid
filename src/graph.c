@@ -4,6 +4,12 @@
 #include "raylib.h"
 #include "graph.h"
 
+void create_line(graph* g, Vector2* line, double* val){
+    for (int i = 0; i < g->width; i++) {
+        line[i] = (Vector2){ i, val[i] };
+    }
+}
+
 void draw_to_graph(graph* g, Vector2* line, Color color){
     Vector2 prev_point;
 
@@ -130,7 +136,7 @@ void draw_graph_border(graph* g){
     );
 }
 
-graph* get_graph(int margin, int width, int height, Color color, Color border_color){
+graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...){
     graph* g = malloc(sizeof(graph));
 
     g->border_color = border_color;
@@ -149,6 +155,20 @@ graph* get_graph(int margin, int width, int height, Color color, Color border_co
     g->pane.width = g->width;
     g->pane.height = g->margin * 3;
     g->pane.section_count = 0;
+
+    va_list ap;
+    va_start(ap, border_color);
+
+    char *title;
+    double *value;
+
+    while ((title = va_arg(ap, char*)) && (value = va_arg(ap, double *))) {
+        g->pane.names[g->pane.section_count] = title;
+        g->pane.values[g->pane.section_count] = value;
+
+        g->pane.section_count++;
+    }
+    va_end(ap);
 
     return g;
 }

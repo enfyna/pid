@@ -52,12 +52,6 @@ void run_pid(graph* g, Vector2* res, double* target_speed, double start_acc, dou
     }
 }
 
-void create_line(graph* g, Vector2* line, double* val){
-    for (int i = 0; i < g->width; i++) {
-        line[i] = (Vector2){ i, val[i] };
-    }
-}
-
 int main(int argc, char** argv){
     double target_speed = 200.0;
     double start_acc = 0.0;
@@ -74,24 +68,14 @@ int main(int argc, char** argv){
         }
     }
 
-    graph* g = get_graph(20, WIDTH, HEIGHT, BLACK, BLUE);
-
-    g->pane.names[0] = "Target Spd";
-    g->pane.values[0] = &target_speed;
-
-    g->pane.names[1] = "Start Acc";
-    g->pane.values[1] = &start_acc;
-
-    g->pane.names[2] = "P";
-    g->pane.values[2] = &k_p;
-
-    g->pane.names[3] = "I";
-    g->pane.values[3] = &k_i;
-
-    g->pane.names[4] = "D";
-    g->pane.values[4] = &k_d;
-
-    g->pane.section_count = 5;
+    graph* g = get_graph(
+        20, WIDTH, HEIGHT, BLACK, BLUE,
+        "Target Spd", &target_speed,
+        "Start Acc", &start_acc,
+        "P", &k_p,
+        "I", &k_i,
+        "D", &k_d
+    );
 
     Vector2* pid_line = malloc(sizeof(Vector2) * g->width);
     Vector2* target_line = malloc(sizeof(Vector2) * g->width);

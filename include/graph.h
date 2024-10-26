@@ -1,5 +1,7 @@
 #include "raylib.h"
 
+#define get_graph(...) get_graph_null(__VA_ARGS__, NULL)
+
 typedef struct {
     int pos_x;
     int pos_y;
@@ -21,7 +23,8 @@ typedef struct {
     bottom_pane pane;
 } graph;
 
-graph* get_graph(int margin, int width, int height, Color color, Color border_color);
+graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...);
 void draw_to_graph(graph* g, Vector2* line, Color color);
+void create_line(graph* g, Vector2* line, double* val);
 void draw_graph_border(graph* g);
 void draw_bottom_pane(graph* g);
