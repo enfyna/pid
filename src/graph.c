@@ -10,6 +10,15 @@ void create_line(graph* g, Vector2* line, double* val){
     }
 }
 
+void draw_axis_to_graph(graph* g, int type, int offset, Color color){
+    int y = g->margin + g->height - offset;
+    if (type == 0) {
+        DrawLine(g->margin, y, g->margin + g->width, y, color);
+    } else if (type == 1) {
+        DrawLine(g->margin + offset, g->margin, g->margin + offset, g->margin + g->height, color);
+    }
+}
+
 void draw_to_graph(graph* g, Vector2* line, Color color){
     Vector2 prev_point;
 
@@ -18,7 +27,7 @@ void draw_to_graph(graph* g, Vector2* line, Color color){
     for (int x = 0; x < g->width; x++) {
         Vector2 point = line[x];
         point.x += g->margin;
-        point.y = g->height - point.y;
+        point.y = g->margin + g->height - point.y;
 
         if (point.x <= g->margin) {
             continuous = false;

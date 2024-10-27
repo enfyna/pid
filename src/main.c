@@ -9,6 +9,8 @@
 #define HEIGHT 300 * 2
 #define WIDTH  400 * 2
 
+#define GRID_MARGIN 50
+
 int sign(double num){
     return num > 0 ? 1 : -1;
 }
@@ -92,6 +94,11 @@ int main(int argc, char** argv){
         BeginDrawing();
             ClearBackground(DARKGRAY);
             draw_graph_border(g);
+
+            for (int x = GRID_MARGIN ; x < g->width; x+=GRID_MARGIN ) {
+                draw_axis_to_graph(g, 0, x, DARKGRAY);
+                draw_axis_to_graph(g, 1, x, DARKGRAY);
+            }
 
             delta = GetFrameTime();
 
