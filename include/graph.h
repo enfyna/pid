@@ -24,6 +24,7 @@ typedef struct {
 } graph;
 
 graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...);
+void draw_axis_to_graph(graph* g, int type, int offset, Color color);
 void draw_to_graph(graph* g, Vector2* line, Color color);
 void create_line(graph* g, Vector2* line, double* val);
 void draw_graph_border(graph* g);

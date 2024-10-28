@@ -61,7 +61,7 @@ void draw_to_graph(graph* g, Vector2* line, Color color){
 }
 
 void draw_bottom_pane(graph* g){
-    if (g->pane.section_count <= 0) {
+    if (g->pane.section_count <= 0 || g->pane.height == -1) {
         return;
     }
     int section_width = g->pane.width / g->pane.section_count;
@@ -113,6 +113,9 @@ void draw_graph_border(graph* g){
         g->border_color
     );
 
+    if (g->pane.height == -1) {
+        return;
+    }
     // bottom pane
     DrawRectangle(
         g->pane.pos_x, g->pane.pos_y,
@@ -153,16 +156,27 @@ graph* get_graph_null(int margin, int width, int height, Color color, Color bord
 
     g->margin = margin;
 
-    g->height = height - g->margin * 6;
-    g->width = width - g->margin * 2;
-
     g->w_width = width;
     g->w_height = height;
 
-    g->pane.pos_x = g->margin;
-    g->pane.pos_y = g->height + g->margin * 2;
-    g->pane.width = g->width;
-    g->pane.height = g->margin * 3;
+    if (g->margin * 3 >= 60) {
+        g->height = height - g->margin * 6;
+        g->width = width - g->margin * 2;
+
+        g->pane.pos_x = g->margin;
+        g->pane.pos_y = g->height + g->margin * 2;
+        g->pane.width = g->width;
+        g->pane.height = g->margin * 3;
+    } else {
+        g->height = height - g->margin * 2;
+        g->width = width - g->margin * 2;
+
+        g->pane.pos_x = -1;
+        g->pane.pos_y = -1;
+        g->pane.width = -1;
+        g->pane.height = -1;
+        return g;
+    }
     g->pane.section_count = 0;
 
     va_list ap;

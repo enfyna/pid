@@ -15,7 +15,7 @@ int sign(double num){
     return num > 0 ? 1 : -1;
 }
 
-void run_pid(graph* g, Vector2* res, double* target_speed, double start_acc, double k_p, double k_i, double k_d){
+void run_pid(graph* g, Vector2* res, Vector2* sec, double* target_speed, double start_acc, double k_p, double k_i, double k_d){
     double current_speed = 100.0;
 
     double current_acc = start_acc;
@@ -51,6 +51,7 @@ void run_pid(graph* g, Vector2* res, double* target_speed, double start_acc, dou
 
         p_err = err;
         res[x] = (Vector2){ x, current_speed };
+        sec[x] = (Vector2){ x, amount * 10 + 50};
     }
 }
 
@@ -64,14 +65,18 @@ int main(int argc, char** argv){
     double k_i = 0.001;
     double k_d = 0.1;
 
+    int graph_margin = 20;
+
     for (int i = 0; i < argc; i++) {
         if (!strcmp(argv[i], "--speed")) {
             target_speed = atof(argv[++i]);
+        } else if (!strcmp(argv[i], "--graph-margin")) {
+            graph_margin = atoi(argv[++i]);
         }
     }
 
     graph* g = get_graph(
-        20, WIDTH, HEIGHT, BLACK, BLUE,
+        graph_margin, WIDTH, HEIGHT, BLACK, BLUE,
         "Target Spd", &target_speed,
         "Start Acc", &start_acc,
         "P", &k_p,
@@ -81,6 +86,7 @@ int main(int argc, char** argv){
 
     Vector2* pid_line = malloc(sizeof(Vector2) * g->width);
     Vector2* target_line = malloc(sizeof(Vector2) * g->width);
+    Vector2* amount_line = malloc(sizeof(Vector2) * g->width);
 
     double *target_speeds = malloc(sizeof(double) * g->width);
     for (int i = 0; i < g->width; i++) {
@@ -106,6 +112,8 @@ int main(int argc, char** argv){
                 target_speed += 50 * delta;
             } else if (IsKeyDown(KEY_K)) {
                 target_speed -= 50 * delta;
+            } else if (IsKeyDown(KEY_ONE)) {
+                target_speed = round(target_speed);
             }
             if (IsKeyDown(KEY_Q)) {
                 start_acc += 1 * delta;
@@ -140,11 +148,12 @@ int main(int argc, char** argv){
                 target_speeds[i] = target_speed;
             }
 
-            run_pid(g, pid_line, target_speeds, start_acc, k_p, k_i, k_d);
+            run_pid(g, pid_line, amount_line, target_speeds, start_acc, k_p, k_i, k_d);
             create_line(g, target_line, target_speeds);
 
             draw_to_graph(g, target_line, RED);
             draw_to_graph(g, pid_line, WHITE);
+            draw_to_graph(g, amount_line, GREEN);
 
             draw_bottom_pane(g);
         EndDrawing();
@@ -152,6 +161,7 @@ int main(int argc, char** argv){
     free(g);
     free(target_line);
     free(pid_line);
+    free(amount_line);
     CloseWindow();
     return 0;
 }
