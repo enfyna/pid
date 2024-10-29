@@ -9,8 +9,6 @@
 #define HEIGHT 300 * 2
 #define WIDTH  400 * 2
 
-#define GRID_MARGIN 50
-
 int sign(double num){
     return num > 0 ? 1 : -1;
 }
@@ -93,7 +91,10 @@ int main(int argc, char** argv){
         target_speeds[i] = target_speed;
     }
 
-    SetTargetFPS(24);
+    SetTargetFPS(144);
+
+    Vector2 mouse_last_pressed;
+    bool mouse_pressed = false;
 
     InitWindow(WIDTH, HEIGHT, "PID");
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ENTER)) {
@@ -101,10 +102,24 @@ int main(int argc, char** argv){
             ClearBackground(DARKGRAY);
             draw_graph_border(g);
 
-            for (int x = GRID_MARGIN ; x < g->width; x+=GRID_MARGIN ) {
-                draw_axis_to_graph(g, 0, x, DARKGRAY);
-                draw_axis_to_graph(g, 1, x, DARKGRAY);
+            if (!mouse_pressed && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+                mouse_last_pressed = GetMousePosition();
+                mouse_pressed = true;
+            } else if (mouse_pressed) {
+                double dx = GetMouseX() - mouse_last_pressed.x;
+                double dy = GetMouseY() - mouse_last_pressed.y;
+
+                g->pos_y -= dy;
+                g->pos_x += dx;
+
+                mouse_pressed = false;
             }
+
+            if (IsKeyPressed(KEY_SPACE)) {
+                g->pos_y = 0;
+                g->pos_x = 0;
+            }
+            draw_graph_grid(g);
 
             delta = GetFrameTime();
 

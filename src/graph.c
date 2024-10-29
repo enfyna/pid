@@ -11,11 +11,19 @@ void create_line(graph* g, Vector2* line, double* val){
 }
 
 void draw_axis_to_graph(graph* g, int type, int offset, Color color){
-    int y = g->margin + g->height - offset;
-    if (type == 0) {
-        DrawLine(g->margin, y, g->margin + g->width, y, color);
-    } else if (type == 1) {
-        DrawLine(g->margin + offset, g->margin, g->margin + offset, g->margin + g->height, color);
+    int y = g->margin + g->height;
+    if (type == 0) { // x
+        DrawLine(
+            g->margin, y - offset,
+            g->margin + g->width, y - offset,
+            color
+        );
+    } else if (type == 1) { // y
+        DrawLine(
+            g->margin + offset, g->margin,
+            g->margin + offset, g->margin + g->height,
+            color
+        );
     }
 }
 
@@ -26,8 +34,8 @@ void draw_to_graph(graph* g, Vector2* line, Color color){
 
     for (int x = 0; x < g->width; x++) {
         Vector2 point = line[x];
-        point.x += g->margin;
-        point.y = g->margin + g->height - point.y;
+        point.x += g->margin + g->pos_x;
+        point.y = g->margin + g->height - point.y - g->pos_y;
 
         if (point.x <= g->margin) {
             continuous = false;
@@ -57,6 +65,15 @@ void draw_to_graph(graph* g, Vector2* line, Color color){
             continuous = true;
         }
         prev_point = point;
+    }
+}
+
+void draw_graph_grid(graph *g){
+    for (int x = (int)g->pos_y % GRID_MARGIN; x < g->height; x+=GRID_MARGIN) {
+        draw_axis_to_graph(g, 0, x, DARKGRAY);
+    }
+    for (int y = (int)g->pos_x % GRID_MARGIN; y < g->width; y+=GRID_MARGIN) {
+        draw_axis_to_graph(g, 1, y, DARKGRAY);
     }
 }
 
@@ -150,6 +167,9 @@ void draw_graph_border(graph* g){
 
 graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...){
     graph* g = malloc(sizeof(graph));
+
+    g->pos_x = 0;
+    g->pos_y = 0;
 
     g->border_color = border_color;
     g->color = color;
