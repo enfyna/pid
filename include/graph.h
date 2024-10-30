@@ -31,9 +31,9 @@ typedef struct {
 } graph;
 
 graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...);
-void draw_axis_to_graph(graph* g, int type, int offset, Color color);
-void draw_to_graph(graph* g, Vector2* line, Color color);
-void create_line(graph* g, Vector2* line, double* val);
-void draw_graph_border(graph* g);
-void draw_bottom_pane(graph* g);
-void draw_graph_grid(graph *g);
+void graph_draw_axis(graph* g, int type, int offset, Color color);
+void graph_draw_line(graph* g, Vector2* line, Color color);
+void graph_draw_border(graph* g);
+void graph_draw_bottom_pane(graph* g);
+void graph_draw_grid(graph *g);
+void create_h_line(Vector2* line, double* val, int count);

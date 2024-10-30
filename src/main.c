@@ -100,7 +100,7 @@ int main(int argc, char** argv){
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ENTER)) {
         BeginDrawing();
             ClearBackground(DARKGRAY);
-            draw_graph_border(g);
+            graph_draw_border(g);
 
             if (!mouse_pressed && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 mouse_last_pressed = GetMousePosition();
@@ -119,7 +119,7 @@ int main(int argc, char** argv){
                 g->pos_y = 0;
                 g->pos_x = 0;
             }
-            draw_graph_grid(g);
+            graph_draw_grid(g);
 
             delta = GetFrameTime();
 
@@ -164,13 +164,16 @@ int main(int argc, char** argv){
             }
 
             run_pid(g, pid_line, amount_line, target_speeds, start_acc, k_p, k_i, k_d);
-            create_line(g, target_line, target_speeds);
+            create_h_line(target_line, target_speeds, g->width);
 
-            draw_to_graph(g, target_line, RED);
-            draw_to_graph(g, pid_line, WHITE);
-            draw_to_graph(g, amount_line, GREEN);
+            graph_draw_line(g, target_line, RED);
+            graph_draw_line(g, pid_line, WHITE);
+            graph_draw_line(g, amount_line, GREEN);
 
-            draw_bottom_pane(g);
+            graph_draw_line(g, x_line, DARKBLUE);
+            graph_draw_line(g, y_line, DARKBLUE);
+
+            graph_draw_bottom_pane(g);
         EndDrawing();
     }
     free(g);

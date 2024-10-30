@@ -4,13 +4,13 @@
 #include "raylib.h"
 #include "graph.h"
 
-void create_line(graph* g, Vector2* line, double* val){
-    for (int i = 0; i < g->width; i++) {
+void create_h_line(Vector2* line, double* val, int count){
+    for (int i = 0; i < count; i++) {
         line[i] = (Vector2){ i, val[i] };
     }
 }
 
-void draw_axis_to_graph(graph* g, int type, int offset, Color color){
+void graph_draw_axis(graph* g, int type, int offset, Color color){
     int y = g->margin + g->height;
     if (type == 0) { // x
         DrawLine(
@@ -27,7 +27,7 @@ void draw_axis_to_graph(graph* g, int type, int offset, Color color){
     }
 }
 
-void draw_to_graph(graph* g, Vector2* line, Color color){
+void graph_draw_line(graph* g, Vector2* line, Color color){
     Vector2 prev_point;
 
     bool continuous = true;
@@ -56,10 +56,10 @@ void draw_to_graph(graph* g, Vector2* line, Color color){
         }
 
         if (continuous && x > 0) {
-            DrawLine(
-                point.x, point.y,
-                prev_point.x, prev_point.y,
-                color
+            DrawLineEx(
+                point,
+                prev_point,
+                2, color
             );
         } else {
             continuous = true;
@@ -68,16 +68,16 @@ void draw_to_graph(graph* g, Vector2* line, Color color){
     }
 }
 
-void draw_graph_grid(graph *g){
+void graph_draw_grid(graph *g){
     for (int x = (int)g->pos_y % GRID_MARGIN; x < g->height; x+=GRID_MARGIN) {
-        draw_axis_to_graph(g, 0, x, DARKGRAY);
+        graph_draw_axis(g, 0, x, DARKGRAY);
     }
     for (int y = (int)g->pos_x % GRID_MARGIN; y < g->width; y+=GRID_MARGIN) {
-        draw_axis_to_graph(g, 1, y, DARKGRAY);
+        graph_draw_axis(g, 1, y, DARKGRAY);
     }
 }
 
-void draw_bottom_pane(graph* g){
+void graph_draw_bottom_pane(graph* g){
     if (g->pane.section_count <= 0 || g->pane.height == -1) {
         return;
     }
@@ -98,7 +98,7 @@ void draw_bottom_pane(graph* g){
 
 }
 
-void draw_graph_border(graph* g){
+void graph_draw_border(graph* g){
     // graph
     DrawRectangle(
         g->margin, g->margin,
