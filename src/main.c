@@ -86,9 +86,13 @@ int main(int argc, char** argv){
     Vector2* target_line = malloc(sizeof(Vector2) * g->width);
     Vector2* amount_line = malloc(sizeof(Vector2) * g->width);
 
+    Vector2* x_line = malloc(sizeof(Vector2) * g->width);
+    Vector2* y_line = malloc(sizeof(Vector2) * g->width);
+
     double *target_speeds = malloc(sizeof(double) * g->width);
     for (int i = 0; i < g->width; i++) {
-        target_speeds[i] = target_speed;
+        x_line[i] = (Vector2){ i, 0 };
+        y_line[i] = (Vector2){ 0, i };
     }
 
     SetTargetFPS(144);
