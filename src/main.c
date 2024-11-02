@@ -86,14 +86,7 @@ int main(int argc, char** argv){
     Vector2* target_line = malloc(sizeof(Vector2) * g->width);
     Vector2* amount_line = malloc(sizeof(Vector2) * g->width);
 
-    Vector2* x_line = malloc(sizeof(Vector2) * g->width);
-    Vector2* y_line = malloc(sizeof(Vector2) * g->width);
-
     double *target_speeds = malloc(sizeof(double) * g->width);
-    for (int i = 0; i < g->width; i++) {
-        x_line[i] = (Vector2){ i, 0 };
-        y_line[i] = (Vector2){ 0, i };
-    }
 
     SetTargetFPS(144);
 
@@ -124,6 +117,9 @@ int main(int argc, char** argv){
                 g->pos_x = 0;
             }
             graph_draw_grid(g);
+            
+            graph_draw_axis(g, X_AXIS, 0, DARKBLUE);
+            graph_draw_axis(g, Y_AXIS, 0, DARKBLUE);
 
             delta = GetFrameTime();
 
@@ -173,9 +169,6 @@ int main(int argc, char** argv){
             graph_draw_line(g, target_line, RED);
             graph_draw_line(g, pid_line, WHITE);
             graph_draw_line(g, amount_line, GREEN);
-
-            graph_draw_line(g, x_line, DARKBLUE);
-            graph_draw_line(g, y_line, DARKBLUE);
 
             graph_draw_bottom_pane(g);
         EndDrawing();

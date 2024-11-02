@@ -4,21 +4,46 @@
 #include "raylib.h"
 #include "graph.h"
 
+static void _graph_draw_line(graph* g, line* l);
+
 void create_h_line(Vector2* line, double* val, int count){
     for (int i = 0; i < count; i++) {
         line[i] = (Vector2){ i, val[i] };
     }
 }
 
+void create_v_line(Vector2* line, double* val, int count){
+    for (int i = 0; i < count; i++) {
+        line[i] = (Vector2){ i, val[i] };
+    }
+}
+
 void graph_draw_axis(graph* g, int type, int offset, Color color){
+    line axis = {
+        .color = color,
+        .count = 2,
+        .points = malloc(sizeof(Vector2) * 2),
+    };
+    if (type == Y_AXIS) {
+        axis.points[0] = (Vector2){ - g->pos_x, offset };
+        axis.points[1] = (Vector2){ - g->pos_x + g->width , offset };
+    } else {
+        axis.points[0] = (Vector2){ offset, - g->pos_y };
+        axis.points[1] = (Vector2){ offset, - g->pos_y + g->height };
+    }
+    _graph_draw_line(g, &axis);
+    free(axis.points);
+}
+
+void graph_draw_relative_line(graph* g, int type, int offset, Color color){
     int y = g->margin + g->height;
-    if (type == 0) { // x
+    if (type == X_AXIS) {
         DrawLine(
             g->margin, y - offset,
             g->margin + g->width, y - offset,
             color
         );
-    } else if (type == 1) { // y
+    } else if (type == Y_AXIS) {
         DrawLine(
             g->margin + offset, g->margin,
             g->margin + offset, g->margin + g->height,
@@ -27,30 +52,44 @@ void graph_draw_axis(graph* g, int type, int offset, Color color){
     }
 }
 
-void graph_draw_line(graph* g, Vector2* line, Color color){
+void graph_draw_line_with_name(graph* g, Vector2* points, const char* name, Color color){
+    DrawRectangle(g->margin + 10, g->margin + 5 + 25 * g->line_count, 20, 20, color);
+    DrawText(name, g->margin + 40, g->margin + 5 + 25 * g->line_count, 20, color);
+    g->line_count++;
+
+    line l = {
+        .points = points,
+        .count = g->width,
+        .color = color,
+    };
+
+    _graph_draw_line(g, &l);
+}
+
+static void _graph_draw_line(graph* g, line* line){
     Vector2 prev_point;
 
     bool continuous = true;
 
-    for (int x = 0; x < g->width; x++) {
-        Vector2 point = line[x];
+    for (int x = 0; x < line->count; x++) {
+        Vector2 point = line->points[x];
         point.x += g->margin + g->pos_x;
         point.y = g->margin + g->height - point.y - g->pos_y;
 
-        if (point.x <= g->margin) {
+        if (point.x < g->margin) {
             continuous = false;
             continue;
         }
-        else if (point.x >= g->width + g->margin) {
+        else if (point.x > g->width + g->margin) {
             continuous = false;
             continue;
         }
 
-        if (point.y <= g->margin) {
+        if (point.y < g->margin) {
             continuous = false;
             continue;
         }
-        else if (point.y >= g->height + g->margin) {
+        else if (point.y > g->height + g->margin) {
             continuous = false;
             continue;
         }
@@ -59,7 +98,7 @@ void graph_draw_line(graph* g, Vector2* line, Color color){
             DrawLineEx(
                 point,
                 prev_point,
-                2, color
+                2, line->color
             );
         } else {
             continuous = true;
@@ -70,10 +109,10 @@ void graph_draw_line(graph* g, Vector2* line, Color color){
 
 void graph_draw_grid(graph *g){
     for (int x = (int)g->pos_y % GRID_MARGIN; x < g->height; x+=GRID_MARGIN) {
-        graph_draw_axis(g, 0, x, DARKGRAY);
+        graph_draw_relative_line(g, 0, x, DARKGRAY);
     }
     for (int y = (int)g->pos_x % GRID_MARGIN; y < g->width; y+=GRID_MARGIN) {
-        graph_draw_axis(g, 1, y, DARKGRAY);
+        graph_draw_relative_line(g, 1, y, DARKGRAY);
     }
 }
 
@@ -99,6 +138,7 @@ void graph_draw_bottom_pane(graph* g){
 }
 
 void graph_draw_border(graph* g){
+    g->line_count = 0;
     // graph
     DrawRectangle(
         g->margin, g->margin,
