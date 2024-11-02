@@ -24,6 +24,7 @@ typedef struct {
 typedef struct {
     double pos_x;
     double pos_y;
+    double scale;
     int margin;
     int width;
     int height;

@@ -99,6 +99,9 @@ int main(int argc, char** argv){
             ClearBackground(DARKGRAY);
             graph_draw_border(g);
 
+            double fast_zoom = IsKeyDown(KEY_LEFT_SHIFT) ? 5.0 * g->scale : 1.0;
+            g->scale += GetMouseWheelMove() * delta * fast_zoom;
+
             if (!mouse_pressed && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 mouse_last_pressed = GetMousePosition();
                 mouse_pressed = true;
