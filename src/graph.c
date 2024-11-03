@@ -27,15 +27,15 @@ void graph_draw_axis(graph* g, int type, int offset, Color color){
         .points = malloc(sizeof(Vector2) * 2),
     };
     if (type == Y_AXIS) {
-        axis.points[0] = (Vector2){ px, offset };
-        axis.points[1] = (Vector2){ px + len, offset };
         double px  = -g->pos_x / (g->scale * g->scale_x);
         double len = g->width / (g->scale * g->scale_x);
+        axis.points[0] = (Vector2){ px + 1, offset };
+        axis.points[1] = (Vector2){ px + len - 1, offset };
     } else {
-        axis.points[0] = (Vector2){ offset, py };
-        axis.points[1] = (Vector2){ offset, py + len };
         double py = -g->pos_y / (g->scale * g->scale_y);
         double len = g->height / (g->scale * g->scale_y);
+        axis.points[0] = (Vector2){ offset, py + 1 };
+        axis.points[1] = (Vector2){ offset, py + len - 1 };
     }
     _graph_draw_line(g, &axis);
     free(axis.points);
