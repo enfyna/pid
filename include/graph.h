@@ -25,6 +25,8 @@ typedef struct {
     double pos_x;
     double pos_y;
     double scale;
+    double scale_x;
+    double scale_y;
     int margin;
     int width;
     int height;

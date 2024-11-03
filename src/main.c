@@ -99,8 +99,26 @@ int main(int argc, char** argv){
             ClearBackground(DARKGRAY);
             graph_draw_border(g);
 
-            double fast_zoom = IsKeyDown(KEY_LEFT_SHIFT) ? 5.0 * g->scale : 1.0;
-            g->scale += GetMouseWheelMove() * delta * fast_zoom;
+            double zoom_speed = GetMouseWheelMove();
+            if (zoom_speed != 0) {
+                double fast_zoom = IsKeyDown(KEY_LEFT_SHIFT) ? 5.0 * g->scale : 1.0;
+                if (IsKeyDown(KEY_LEFT_CONTROL)) {
+                    g->scale_x += zoom_speed * delta * fast_zoom;
+                } else if (IsKeyDown(KEY_LEFT_ALT)) {
+                    g->scale_y += zoom_speed * delta * fast_zoom;
+                } else {
+                    g->scale += zoom_speed * delta * fast_zoom;
+                }
+                if (g->scale_y <= 0.01) {
+                    g->scale_y = 0.01;
+                }
+                if (g->scale_x <= 0.01) {
+                    g->scale_x = 0.01;
+                }
+                if (g->scale <= 0.01) {
+                    g->scale = 0.01;
+                }
+            }
 
             if (!mouse_pressed && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 mouse_last_pressed = GetMousePosition();
@@ -116,6 +134,9 @@ int main(int argc, char** argv){
             }
 
             if (IsKeyPressed(KEY_SPACE)) {
+                g->scale_x = 1;
+                g->scale_y = 1;
+                g->scale = 1;
                 g->pos_y = 0;
                 g->pos_x = 0;
             }

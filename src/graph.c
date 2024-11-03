@@ -27,15 +27,15 @@ void graph_draw_axis(graph* g, int type, int offset, Color color){
         .points = malloc(sizeof(Vector2) * 2),
     };
     if (type == Y_AXIS) {
-        double px = -g->pos_x / g->scale;
-        double len = g->width / g->scale;
         axis.points[0] = (Vector2){ px, offset };
         axis.points[1] = (Vector2){ px + len, offset };
+        double px  = -g->pos_x / (g->scale * g->scale_x);
+        double len = g->width / (g->scale * g->scale_x);
     } else {
-        double py = -g->pos_y / g->scale;
-        double len = g->height / g->scale;
         axis.points[0] = (Vector2){ offset, py };
         axis.points[1] = (Vector2){ offset, py + len };
+        double py = -g->pos_y / (g->scale * g->scale_y);
+        double len = g->height / (g->scale * g->scale_y);
     }
     _graph_draw_line(g, &axis);
     free(axis.points);
@@ -79,6 +79,9 @@ static void _graph_draw_line(graph* g, line* line){
 
     for (int x = 0; x < line->count; x++) {
         Vector2 point = Vector2Scale(line->points[x], g->scale);
+        point.x *= g->scale_x;
+        point.y *= g->scale_y;
+
         point.x += g->margin + g->pos_x;
         point.y = g->margin + g->height - point.y - g->pos_y;
 
@@ -115,10 +118,10 @@ static void _graph_draw_line(graph* g, line* line){
 
 void graph_draw_grid(graph *g){
     double margin = GRID_MARGIN * g->scale;
-    for (double x = fmod(g->pos_y, margin); x < g->height; x+=margin) {
+    for (double x = fmod(g->pos_y, margin * g->scale_y); x < g->height; x+=margin * g->scale_y) {
         graph_draw_relative_line(g, 0, x, DARKGRAY);
     }
-    for (double y = fmod(g->pos_x, margin); y < g->width; y+=margin) {
+    for (double y = fmod(g->pos_x, margin * g->scale_x); y < g->width; y+=margin * g->scale_x) {
         graph_draw_relative_line(g, 1, y, DARKGRAY);
     }
 }
@@ -238,6 +241,8 @@ graph* get_graph_null(int margin, int width, int height, Color color, Color bord
     g->pos_x = 0;
     g->pos_y = 0;
     g->scale = 1.0;
+    g->scale_x = 1.0;
+    g->scale_y = 1.0;
 
     g->border_color = border_color;
     g->color = color;
