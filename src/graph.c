@@ -221,6 +221,20 @@ void graph_draw_border(graph* g){
 graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...){
     graph* g = malloc(sizeof(graph));
 
+    va_list ap;
+    va_start(ap, border_color);
+
+    char *title;
+    double *value;
+
+    while ((title = va_arg(ap, char*)) && (value = va_arg(ap, double *))) {
+        g->pane.names[g->pane.section_count] = title;
+        g->pane.values[g->pane.section_count] = value;
+
+        g->pane.section_count++;
+    }
+    va_end(ap);
+
     g->pos_x = 0;
     g->pos_y = 0;
     g->scale = 1.0;
@@ -233,7 +247,7 @@ graph* get_graph_null(int margin, int width, int height, Color color, Color bord
     g->w_width = width;
     g->w_height = height;
 
-    if (g->margin * 3 >= 60) {
+    if (g->pane.section_count > 0 && g->margin * 3 >= 60) {
         g->height = height - g->margin * 6;
         g->width = width - g->margin * 2;
 
@@ -251,22 +265,6 @@ graph* get_graph_null(int margin, int width, int height, Color color, Color bord
         g->pane.height = -1;
         return g;
     }
-    g->pane.section_count = 0;
-
-    va_list ap;
-    va_start(ap, border_color);
-
-    char *title;
-    double *value;
-
-    while ((title = va_arg(ap, char*)) && (value = va_arg(ap, double *))) {
-        g->pane.names[g->pane.section_count] = title;
-        g->pane.values[g->pane.section_count] = value;
-
-        g->pane.section_count++;
-    }
-    va_end(ap);
-
     return g;
 }
 
