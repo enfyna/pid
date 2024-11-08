@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,20 @@
 #include "graph.h"
 
 static void _graph_draw_line(graph* g, line* l);
+
+static double min(double a, double b){
+    return a < b ? a : b;
+}
+
+line* get_line(graph* g, int count, const char* name, Color color){
+    line *l = malloc(sizeof(line));
+    l->name = name;
+    l->color = color;
+    l->count = count;
+    l->points = malloc(sizeof(Vector2) * count);
+    g->lines[g->line_count++] = l;
+    return l;
+}
 
 void create_h_line(Vector2* line, double* val, int count){
     for (int i = 0; i < count; i++) {
@@ -58,18 +73,15 @@ void graph_draw_relative_line(graph* g, int type, int offset, Color color){
     }
 }
 
-void graph_draw_line_with_name(graph* g, Vector2* points, const char* name, Color color){
-    DrawRectangle(g->margin + 10, g->margin + 5 + 25 * g->line_count, 20, 20, color);
-    DrawText(name, g->margin + 40, g->margin + 5 + 25 * g->line_count, 20, color);
-    g->line_count++;
+void graph_draw_lines(graph* g){
+    for (int i = 0; i < g->line_count; i++) {
+        line* l = g->lines[i];
 
-    line l = {
-        .points = points,
-        .count = g->width,
-        .color = color,
-    };
+        DrawRectangle(g->margin + 5, g->margin + 5 + 25 * i, 20, 20, l->color);
+        DrawText(l->name, g->margin + 28, g->margin + 7 + 25 * i, 20, l->color);
 
-    _graph_draw_line(g, &l);
+        _graph_draw_line(g, l);
+    }
 }
 
 static void _graph_draw_line(graph* g, line* line){
@@ -116,6 +128,14 @@ static void _graph_draw_line(graph* g, line* line){
     }
 }
 
+void graph_draw_line_value_at_x(graph* g, int pos){
+    for (int i = 0; i < g->line_count; i++) {
+        int max_x = min(pos, g->lines[i]->count - 1);
+        Vector2 point = g->lines[i]->points[max_x];
+        graph_draw_point(g, point, 4, g->lines[i]->color);
+    }
+}
+
 void graph_draw_grid(graph *g){
     double margin = GRID_MARGIN * g->scale;
     for (double x = fmod(g->pos_y, margin * g->scale_y); x < g->height; x+=margin * g->scale_y) {
@@ -154,7 +174,6 @@ void graph_draw_bottom_pane(graph* g){
 }
 
 void graph_draw_border(graph* g){
-    g->line_count = 0;
     // graph
     DrawRectangle(
         g->margin, g->margin,
@@ -221,6 +240,63 @@ void graph_draw_border(graph* g){
     );
 }
 
+void graph_draw_point(graph *g, Vector2 point, int size, Color color){
+    Vector2 real_coordinates = point;
+    point = Vector2Scale(point, g->scale);
+    point.x *= g->scale_x;
+    point.y *= g->scale_y;
+
+    point.x += g->margin + g->pos_x;
+    point.y = g->margin + g->height - point.y - g->pos_y;
+
+    if (point.x < g->margin) {
+        return;
+    }
+    else if (point.x > g->width + g->margin) {
+        return;
+    }
+    if (point.y < g->margin) {
+        return;
+    }
+    else if (point.y > g->height + g->margin) {
+        return;
+    }
+    float selected_point;
+    if (real_coordinates.y != 0) {
+        selected_point = real_coordinates.y;
+    } else {
+        selected_point = real_coordinates.x;
+    }
+    DrawText(TextFormat("%.1lf", selected_point), point.x, point.y + 4, 16, color);
+    DrawCircleV(point, size, color);
+}
+
+void graph_zoom(graph* g, double zoom, double delta){
+    if (IsKeyDown(KEY_LEFT_CONTROL)) {
+        g->scale_x += zoom * delta;
+    } else if (IsKeyDown(KEY_LEFT_ALT)) {
+        g->scale_y += zoom * delta;
+    } else {
+        g->scale += zoom * delta;
+    }
+    if (g->scale_y <= 0.01) {
+        g->scale_y = 0.01;
+    }
+    if (g->scale_x <= 0.01) {
+        g->scale_x = 0.01;
+    }
+    if (g->scale <= 0.01) {
+        g->scale = 0.01;
+    }
+}
+
+void graph_free(graph* g){
+    for (int i = 0; i < g->line_count; i++) {
+        free(g->lines[i]);
+    }
+    free(g);
+}
+
 graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...){
     graph* g = malloc(sizeof(graph));
 
@@ -229,6 +305,8 @@ graph* get_graph_null(int margin, int width, int height, Color color, Color bord
 
     char *title;
     double *value;
+
+    g->pane.section_count = 0;
 
     while ((title = va_arg(ap, char*)) && (value = va_arg(ap, double *))) {
         g->pane.names[g->pane.section_count] = title;
@@ -268,8 +346,12 @@ graph* get_graph_null(int margin, int width, int height, Color color, Color bord
         g->pane.pos_y = -1;
         g->pane.width = -1;
         g->pane.height = -1;
-        return g;
     }
+
+    g->line_count = 0;
+    g->line_capacity = 24;
+    g->lines = malloc(sizeof(line) * g->line_capacity);
+
     return g;
 }
 

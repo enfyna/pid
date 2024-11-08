@@ -1,15 +1,14 @@
+#ifndef GRAPH_H
+#define GRAPH_H
+
 #include "raylib.h"
 
 #define get_graph(...) get_graph_null(__VA_ARGS__, NULL)
-#define graph_draw_line(g, line, color) \
-    graph_draw_line_with_name(g, line, #line, color) 
-
-#define print_double(var) printf("%s: %lf\n", #var, var)
-#define print_int(var) printf("%s: %d\n", #var, var)
 
 #define X_AXIS 0
 #define Y_AXIS 1
-#define GRID_MARGIN 50
+
+#define GRID_MARGIN 10
 
 typedef struct {
     int pos_x;
@@ -20,6 +19,13 @@ typedef struct {
     char* names[5];
     double* values[5];
 } bottom_pane;
+
+typedef struct {
+    Vector2* points;
+    int count;
+    Color color;
+    const char* name;
+} line;
 
 typedef struct {
     double pos_x;
@@ -33,24 +39,26 @@ typedef struct {
     int w_width;
     int w_height;
     int line_count;
+    int line_capacity;
+    line** lines;
     Color color;
     Color border_color;
     bottom_pane pane;
 } graph;
 
-typedef struct {
-    Vector2* points;
-    int count;
-    Color color;
-} line;
-
 graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...);
 void graph_draw_axis(graph* g, int type, int offset, Color color);
 void graph_draw_relative_line(graph* g, int type, int offset, Color color);
-void graph_draw_line_with_name(graph* g, Vector2* line, const char* name, Color color);
+void graph_draw_lines(graph* g);
+void graph_draw_line_value_at_x(graph* g, int pos);
 void graph_draw_border(graph* g);
 void graph_draw_bottom_pane(graph* g);
 void graph_draw_grid(graph *g);
+void graph_draw_point(graph* g, Vector2 p, int size, Color color);
+void graph_zoom(graph* g, double zoom, double delta);
+void graph_free(graph* g);
 
+line* get_line(graph* g, int count, const char* name, Color color);
 void create_h_line(Vector2* line, double* val, int count);
 void create_v_line(Vector2* line, double* val, int count);
+#endif // GRAPH_H

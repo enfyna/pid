@@ -4,70 +4,58 @@
 #include <string.h>
 
 #include "raylib.h"
+#include "raymath.h"
 #include "graph.h"
+#include "pid.h"
+#include "car.h"
 
 #define HEIGHT 300 * 2
 #define WIDTH  400 * 2
 
-int sign(double num){
-    return num > 0 ? 1 : -1;
-}
+void run_sim(car* c, pid* p, int sim_time, line* speed_line, line* rpm_line, line* gear_line, line* throttle_line){
+    c->input.gear = 2;
+    c->input.throttle = 0.0;
 
-void run_pid(graph* g, Vector2* res, Vector2* sec, double* target_speed, double start_acc, double k_p, double k_i, double k_d){
-    double current_speed = 100.0;
+    c->current.rpm = 0;
+    c->current.velocity = 0;
+    c->current.position = 0;
+    c->current.acceleration = 0;
+    c->current.shift_time_left = 0;
 
-    double current_acc = start_acc;
-    double inc_acc = 1.0;
-    double max_acc = 5.0;
+    p->it = 0;
+    p->prev_err = 0;
 
-    double total_time = g->width;
-
-    double it = 0.0;
-
-    double dt = 1.0;
-    double p_err = 0;
-    for (int x = 0; x < total_time; x++) {
-        double err = target_speed[x] - current_speed;
-        double p = k_p * err;
-
-        double i = k_i * err * dt;
-        it = it + i;
-
-        double d = k_d * ( err - p_err ) / dt;
-
-        // amount of pressure on gas pedal
-        double amount = p + it + d;
-
-        if (fabs(amount) > inc_acc){
-            amount = inc_acc * sign(amount);
-        }
-        current_acc += amount;
-        if (fabs(current_acc) > max_acc){
-            current_acc = max_acc * sign(current_acc);
-        }
-        current_speed += current_acc;
-
-        p_err = err;
-        res[x] = (Vector2){ x, current_speed };
-        sec[x] = (Vector2){ x, amount * 10 + 50};
+    for (int i = 0; i < sim_time; i++) {
+        simulate(c, 0.1);
+        speed_line->points[i] = (Vector2){ i, c->current.velocity * 3.6 };
+        gear_line->points[i] = (Vector2){ i, (c->input.gear - 1) * 10 };
+        rpm_line->points[i] = (Vector2){ i, c->current.rpm / 100.0 };
+        throttle_line->points[i] = (Vector2){ i, c->input.throttle * 10 };
+        run_pid(c, p, 0.1);
     }
 }
 
 int main(int argc, char** argv){
-    double target_speed = 200.0;
-    double start_acc = 0.0;
+    SetTargetFPS(144);
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
+    InitWindow(WIDTH, HEIGHT, "PID");
+
+    int sim_time = 760;
+
+    pid* p = calloc(1, sizeof(pid));
+    p->target_speed = 0.0;
+
+    p->P = 0.1;
+    p->I = 0.001;
+    p->D = 0.1;
 
     double delta;
-
-    double k_p = 0.1;
-    double k_i = 0.001;
-    double k_d = 0.1;
 
     int graph_margin = 20;
 
     for (int i = 0; i < argc; i++) {
         if (!strcmp(argv[i], "--speed")) {
-            target_speed = atof(argv[++i]);
+            p->target_speed = atof(argv[++i]);
         } else if (!strcmp(argv[i], "--graph-margin")) {
             graph_margin = atoi(argv[++i]);
         }
@@ -75,49 +63,34 @@ int main(int argc, char** argv){
 
     graph* g = get_graph(
         graph_margin, WIDTH, HEIGHT, BLACK, BLUE,
-        "Target Spd", &target_speed,
-        "Start Acc", &start_acc,
-        "P", &k_p,
-        "I", &k_i,
-        "D", &k_d
+        "Target Spd", &p->target_speed,
+        "P", &p->P,
+        "I", &p->I,
+        "D", &p->D
     );
 
-    Vector2* pid_line = malloc(sizeof(Vector2) * g->width);
-    Vector2* target_line = malloc(sizeof(Vector2) * g->width);
-    Vector2* amount_line = malloc(sizeof(Vector2) * g->width);
+    car* c = get_corvette_c5();
 
-    double *target_speeds = malloc(sizeof(double) * g->width);
+    line* speed_line = get_line(g, sim_time, "Speed (kmh)", PURPLE);
+    line* rpm_line = get_line(g, sim_time, "RPM / 100.0", YELLOW);
+    line* throttle_line = get_line(g, sim_time, "Throttle * 10", GREEN);
+    line* gear_line = get_line(g, sim_time, "Gear * 10", BLUE);
 
-    SetTargetFPS(144);
+    run_sim(c, p, sim_time, speed_line, rpm_line, gear_line, throttle_line);
 
     Vector2 mouse_last_pressed;
     bool mouse_pressed = false;
 
-    InitWindow(WIDTH, HEIGHT, "PID");
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ENTER)) {
         BeginDrawing();
             ClearBackground(DARKGRAY);
-            graph_draw_border(g);
+
+            delta = GetFrameTime();
 
             double zoom_speed = GetMouseWheelMove();
             if (zoom_speed != 0) {
-                double fast_zoom = IsKeyDown(KEY_LEFT_SHIFT) ? 5.0 * g->scale : 1.0;
-                if (IsKeyDown(KEY_LEFT_CONTROL)) {
-                    g->scale_x += zoom_speed * delta * fast_zoom;
-                } else if (IsKeyDown(KEY_LEFT_ALT)) {
-                    g->scale_y += zoom_speed * delta * fast_zoom;
-                } else {
-                    g->scale += zoom_speed * delta * fast_zoom;
-                }
-                if (g->scale_y <= 0.01) {
-                    g->scale_y = 0.01;
-                }
-                if (g->scale_x <= 0.01) {
-                    g->scale_x = 0.01;
-                }
-                if (g->scale <= 0.01) {
-                    g->scale = 0.01;
-                }
+                zoom_speed *= IsKeyDown(KEY_LEFT_SHIFT) ? 25.0 * g->scale : 5.0;
+                graph_zoom(g, zoom_speed, delta);
             }
 
             if (!mouse_pressed && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
@@ -127,8 +100,8 @@ int main(int argc, char** argv){
                 double dx = GetMouseX() - mouse_last_pressed.x;
                 double dy = GetMouseY() - mouse_last_pressed.y;
 
-                g->pos_y -= dy;
-                g->pos_x += dx;
+                g->pos_y -= dy * 2.5;
+                g->pos_x += dx * 2.5;
 
                 mouse_pressed = false;
             }
@@ -140,67 +113,75 @@ int main(int argc, char** argv){
                 g->pos_y = 0;
                 g->pos_x = 0;
             }
-            graph_draw_grid(g);
-            
-            graph_draw_axis(g, X_AXIS, 0, DARKBLUE);
-            graph_draw_axis(g, Y_AXIS, 0, DARKBLUE);
 
-            delta = GetFrameTime();
-
+            int update_pid = 0;
             if (IsKeyDown(KEY_J)) {
-                target_speed += 50 * delta;
+                p->target_speed += 50 * delta;
             } else if (IsKeyDown(KEY_K)) {
-                target_speed -= 50 * delta;
+                p->target_speed -= 50 * delta;
+                if (p->target_speed < 0) {
+                    p->target_speed = 0;
+                }
             } else if (IsKeyDown(KEY_ONE)) {
-                target_speed = round(target_speed);
-            }
-            if (IsKeyDown(KEY_Q)) {
-                start_acc += 1 * delta;
-            } else if (IsKeyDown(KEY_A)) {
-                start_acc -= 1 * delta;
-            } else if (IsKeyDown(KEY_Z)) {
-                start_acc = 0;
+                p->target_speed = round(p->target_speed);
+            } else {
+                update_pid += 1;
             }
             if (IsKeyDown(KEY_W)) {
-                k_p += 0.01 * delta;
+                p->P += 0.01 * delta;
             } else if (IsKeyDown(KEY_S)) {
-                k_p -= 0.01 * delta;
+                p->P -= 0.01 * delta;
             } else if (IsKeyDown(KEY_X)) {
-                k_p = 0;
+                p->P = 0;
+            } else {
+                update_pid += 1;
             }
             if (IsKeyDown(KEY_E)) {
-                k_i += 0.01 * delta;
+                p->I += 0.01 * delta;
             } else if (IsKeyDown(KEY_D)) {
-                k_i -= 0.01 * delta;
+                p->I -= 0.01 * delta;
             } else if (IsKeyDown(KEY_C)){
-                k_i = 0;
+                p->I = 0;
+            } else {
+                update_pid += 1;
             }
             if (IsKeyDown(KEY_R)) {
-                k_d += 0.01 * delta;
+                p->D += 0.01 * delta;
             } else if (IsKeyDown(KEY_F)) {
-                k_d -= 0.01 * delta;
+                p->D -= 0.01 * delta;
             } else if (IsKeyDown(KEY_V)){
-                k_d = 0;
+                p->D = 0;
+            } else {
+                update_pid += 1;
+            }
+            if (update_pid < 4) {
+                run_sim(c, p, sim_time, speed_line, rpm_line, gear_line, throttle_line);
             }
 
-            for (int i = 0; i < g->width; i++) {
-                target_speeds[i] = target_speed;
+            graph_draw_border(g);
+            graph_draw_grid(g);
+
+            graph_draw_axis(g, X_AXIS, 0, DARKBLUE);
+            graph_draw_axis(g, X_AXIS, sim_time, DARKBLUE);
+            graph_draw_axis(g, Y_AXIS, 0, DARKBLUE);
+            graph_draw_axis(g, Y_AXIS, p->target_speed, RED);
+
+            graph_draw_lines(g);
+
+            if (IsKeyDown(KEY_TAB)) {
+                Vector2 m_pos = GetMousePosition();
+                // normalize mouse position to graph
+                m_pos.x -= g->margin + g->pos_x;
+                m_pos.y = g->margin + g->height - m_pos.y - g->pos_y;
+                m_pos = Vector2Scale(m_pos, 1.0 / g->scale);
+                m_pos.x *= 1.0 / g->scale_x;
+                m_pos.y *= 1.0 / g->scale_y;
+                graph_draw_line_value_at_x(g, m_pos.x);
             }
-
-            run_pid(g, pid_line, amount_line, target_speeds, start_acc, k_p, k_i, k_d);
-            create_h_line(target_line, target_speeds, g->width);
-
-            graph_draw_line(g, target_line, RED);
-            graph_draw_line(g, pid_line, WHITE);
-            graph_draw_line(g, amount_line, GREEN);
-
             graph_draw_bottom_pane(g);
         EndDrawing();
     }
-    free(g);
-    free(target_line);
-    free(pid_line);
-    free(amount_line);
+    graph_free(g);
     CloseWindow();
     return 0;
 }

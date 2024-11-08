@@ -1,15 +1,16 @@
 default: main
 
 CC=clang
-CFLAGS= -Wall -Wextra
+CFLAGS= -Wall -Wextra -ggdb
 
 SOURCE_DIR=./src
+CARS_DIR=$(SOURCE_DIR)/cars
 BUILD_PATH=./build
 RAYLIB_DIR=./raylib-5.0_linux_amd64
 
 $(shell test -d $(BUILD_PATH) || mkdir -p $(BUILD_PATH))
 
-SOURCES=$(wildcard $(SOURCE_DIR)/*.c)
+SOURCES=$(wildcard $(SOURCE_DIR)/*.c $(CARS_DIR)/*.c)
 
 main: $(SOURCES)
 	$(info SOURCES => $(SOURCES))
