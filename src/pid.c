@@ -18,7 +18,7 @@ void run_pid(car* c, pid* p, double delta){
     double amount = p_k + p->it + d_k;
     if (amount > 1.0) {
         amount = 1.0;
-        if (c->current.acceleration < 0 && c->input.gear < c->gear_count + 2)
+        if (c->current.acceleration <= 0 && c->input.gear < c->gear_count + 2)
             c->input.gear += 1;
     } else if (amount < -1.0) {
         amount = -1.0;

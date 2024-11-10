@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
@@ -13,7 +14,7 @@
 #define WIDTH  400 * 2
 
 void run_sim(car* c, pid* p, int sim_time, line* speed_line, line* rpm_line, line* gear_line, line* throttle_line){
-    c->input.gear = 2;
+    c->input.gear = 1;
     c->input.throttle = 0.0;
 
     c->current.rpm = 0;
@@ -35,12 +36,26 @@ void run_sim(car* c, pid* p, int sim_time, line* speed_line, line* rpm_line, lin
     }
 }
 
+typedef struct {
+    int *argc;
+    char **argv;
+} cmd;
+
+char* shift_args(cmd* c){
+    if (c->argc <= 0) return NULL;
+    c->argc--;
+    return *(c->argv++);
+}
+
 int main(int argc, char** argv){
     SetTargetFPS(144);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(WIDTH, HEIGHT, "PID");
 
-    int sim_time = 760;
+    cmd cli = {
+        .argc = &argc,
+        .argv = argv,
+    };
 
     pid* p = calloc(1, sizeof(pid));
     p->target_speed = 0.0;
@@ -51,13 +66,26 @@ int main(int argc, char** argv){
 
     double delta;
 
+    char* selected_car = "corvette_c5";
     int graph_margin = 20;
+    int sim_time = 760;
 
-    for (int i = 0; i < argc; i++) {
-        if (!strcmp(argv[i], "--speed")) {
-            p->target_speed = atof(argv[++i]);
-        } else if (!strcmp(argv[i], "--graph-margin")) {
-            graph_margin = atoi(argv[++i]);
+    char* program_name = shift_args(&cli);
+    printf("%s\n", program_name);
+
+    char* command;
+    char* arg;
+
+    while ((command = shift_args(&cli))) {
+        if (!strcmp(command, "--speed")) {
+            arg = shift_args(&cli);
+            p->target_speed = atof(arg);
+        } else if (!strcmp(command, "--car")) {
+            arg = shift_args(&cli);
+            selected_car = arg;
+        } else if (!strcmp(command, "--graph-margin")) {
+            arg = shift_args(&cli);
+            graph_margin = atoi(arg);
         }
     }
 
@@ -69,7 +97,7 @@ int main(int argc, char** argv){
         "D", &p->D
     );
 
-    car* c = get_corvette_c5();
+    car* c = get_car(selected_car);
 
     line* speed_line = get_line(g, sim_time, "Speed (kmh)", PURPLE);
     line* rpm_line = get_line(g, sim_time, "RPM / 100.0", YELLOW);

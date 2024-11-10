@@ -7,7 +7,7 @@ car* get_corvette_c5() {
     const int GEAR_COUNT = 6;
     const int MAX_RPM = 8000;
 
-    car *corvette = _get_car(MAX_RPM, GEAR_COUNT);
+    car *corvette = _init_car(MAX_RPM, GEAR_COUNT);
 
     corvette->mass = 1500;
     corvette->gear_shift_time = 100;

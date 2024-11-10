@@ -14,7 +14,7 @@ static double max(double a, double b){
     return a > b ? a : b;
 }
 
-car* _get_car(int max_rpm, int gear_count){
+car* _init_car(int max_rpm, int gear_count){
     car *c = malloc(sizeof(car));
     assert(c != NULL);
 
@@ -31,6 +31,14 @@ car* _get_car(int max_rpm, int gear_count){
     c->current.velocity = 0;
 
     return c;
+}
+
+car* get_car(const char* name){
+    if (!strcmp(name, "toyota_trueno")) {
+        return get_toyota_trueno();
+    } else {
+        return get_corvette_c5();
+    }
 }
 
 double calculate_rpm(car* c){

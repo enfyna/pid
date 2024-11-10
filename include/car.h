@@ -31,7 +31,8 @@ typedef struct {
     car_input input;
 } car;
 
-car* _get_car(int max_rpm, int gear_count);
+car* get_car(const char* name);
+car* _init_car(int max_rpm, int gear_count);
 void simulate(car* car, double delta);
 
 car* get_toyota_trueno();
