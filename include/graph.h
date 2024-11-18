@@ -28,6 +28,12 @@ typedef struct {
 } line;
 
 typedef struct {
+    line** items;
+    int count;
+    int capacity;
+} lines;
+
+typedef struct {
     double pos_x;
     double pos_y;
     double scale;
@@ -38,9 +44,7 @@ typedef struct {
     int height;
     int w_width;
     int w_height;
-    int line_count;
-    int line_capacity;
-    line** lines;
+    lines lines;
     Color color;
     Color border_color;
     bottom_pane pane;

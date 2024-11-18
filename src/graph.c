@@ -13,13 +13,23 @@ static double min(double a, double b){
     return a < b ? a : b;
 }
 
+#define append(arr, l){ \
+    do { \
+        if ((arr)->count >= (arr)->capacity) { \
+            (arr)->capacity *= 2; \
+            (arr)->items = realloc((arr)->items, sizeof(*(arr)->items) * (arr)->capacity); \
+        } \
+        (arr)->items[(arr)->count++] = (l); \
+    } while (0); \
+}
+
 line* get_line(graph* g, int count, const char* name, Color color){
     line *l = malloc(sizeof(line));
     l->name = name;
     l->color = color;
     l->count = count;
     l->points = malloc(sizeof(Vector2) * count);
-    g->lines[g->line_count++] = l;
+    append(&g->lines, l);
     return l;
 }
 
@@ -74,8 +84,8 @@ void graph_draw_relative_line(graph* g, int type, int offset, Color color){
 }
 
 void graph_draw_lines(graph* g){
-    for (int i = 0; i < g->line_count; i++) {
-        line* l = g->lines[i];
+    for (int i = 0; i < g->lines.count; i++) {
+        line* l = g->lines.items[i];
 
         DrawRectangle(g->margin + 5, g->margin + 5 + 25 * i, 20, 20, l->color);
         DrawText(l->name, g->margin + 28, g->margin + 7 + 25 * i, 20, l->color);
@@ -129,10 +139,10 @@ static void _graph_draw_line(graph* g, line* line){
 }
 
 void graph_draw_line_value_at_x(graph* g, int pos){
-    for (int i = 0; i < g->line_count; i++) {
-        int max_x = min(pos, g->lines[i]->count - 1);
-        Vector2 point = g->lines[i]->points[max_x];
-        graph_draw_point(g, point, 4, g->lines[i]->color);
+    for (int i = 0; i < g->lines.count; i++) {
+        int max_x = min(pos, g->lines.items[i]->count - 1);
+        Vector2 point = g->lines.items[i]->points[max_x];
+        graph_draw_point(g, point, 4, g->lines.items[i]->color);
     }
 }
 
@@ -291,8 +301,8 @@ void graph_zoom(graph* g, double zoom, double delta){
 }
 
 void graph_free(graph* g){
-    for (int i = 0; i < g->line_count; i++) {
-        free(g->lines[i]);
+    for (int i = 0; i < g->lines.count; i++) {
+        free(g->lines.items[i]);
     }
     free(g);
 }
@@ -348,9 +358,9 @@ graph* get_graph_null(int margin, int width, int height, Color color, Color bord
         g->pane.height = -1;
     }
 
-    g->line_count = 0;
-    g->line_capacity = 24;
-    g->lines = malloc(sizeof(line) * g->line_capacity);
+    g->lines.count = 0;
+    g->lines.capacity = 4;
+    g->lines.items = malloc(sizeof(line*) * g->lines.capacity);
 
     return g;
 }
