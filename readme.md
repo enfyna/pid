@@ -39,6 +39,10 @@
 
             make
 
+    For windows:
+        
+            make win
+
 5. Run
 
        ./build/main 
