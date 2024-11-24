@@ -3,7 +3,7 @@
 
 typedef struct {
     double rpm;
-    int shift_time_left;
+    float shift_time_left;
 
     double acceleration; // mps²
     double velocity;     // mps
@@ -22,7 +22,7 @@ typedef struct {
     double *gear_ratios;
     float final_drive_ratio;
     int gear_count;
-    int gear_shift_time;
+    float gear_shift_time;
 
     float mass;         // kg
     float wheel_radius; // m

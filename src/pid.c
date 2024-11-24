@@ -18,13 +18,32 @@ void run_pid(car* c, pid* p, double delta){
     double amount = p_k + p->it + d_k;
     if (amount > 1.0) {
         amount = 1.0;
-        if (c->current.acceleration <= 0 && c->input.gear < c->gear_count + 2)
-            c->input.gear += 1;
     } else if (amount < -1.0) {
         amount = -1.0;
-        if (c->current.rpm < 2000 && c->input.gear > 2)
-            c->input.gear -= 1;
     }
+    if (c->current.shift_time_left > 0) {
+        c->current.shift_time_left -= delta;
+    } else {
+        if (amount > 0){
+            if (c->input.gear < 3){
+                c->input.gear += 1;
+                c->current.shift_time_left = c->gear_shift_time;
+            }
+            else if ( c->current.acceleration <= 0 
+                && c->current.rpm > c->max_rpm / 4 
+                && c->input.gear < c->gear_count + 2){
+                c->input.gear += 1;
+                c->current.shift_time_left = c->gear_shift_time;
+            }
+        } 
+        else if (amount < 0 
+                && c->current.rpm < 3000 
+                && c->input.gear > 3){
+            c->input.gear -= 1;
+            c->current.shift_time_left = c->gear_shift_time;
+        }
+    }
+
     c->input.throttle = amount;
 
     p->prev_err = err;

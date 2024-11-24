@@ -10,7 +10,7 @@ car* get_corvette_c5() {
     car *corvette = _init_car(MAX_RPM, GEAR_COUNT);
 
     corvette->mass = 1500;
-    corvette->gear_shift_time = 100;
+    corvette->gear_shift_time = 2;
     corvette->wheel_radius = 0.33;
 
     corvette->input.gear = 2;

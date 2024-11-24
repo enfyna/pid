@@ -11,7 +11,7 @@ car* get_toyota_trueno(){
 
     toyota->mass = 1089;
     toyota->wheel_radius = 1.0;
-    toyota->gear_shift_time = 100;
+    toyota->gear_shift_time = 3;
     toyota->wheel_radius = 0.289052;
 
     toyota->input.gear = 2;
