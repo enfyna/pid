@@ -111,10 +111,10 @@ int main(int argc, char** argv){
 
     graph* g = get_graph(
         graph_margin, WIDTH, HEIGHT, BLACK, BLUE,
-        "Target Spd", &p->target_speed,
-        "P", &p->P,
-        "I", &p->I,
-        "D", &p->D
+        "Target Speed", &p->target_speed,
+        "Proportional", &p->P,
+        "Integral", &p->I,
+        "Derivative", &p->D
     );
 
     car* c = get_car(selected_car);
@@ -215,6 +215,7 @@ int main(int argc, char** argv){
         }
         if (should_draw_screen == 0) {
             BeginDrawing();
+                graph_draw_bottom_pane(g);
             EndDrawing();
             continue;
         }

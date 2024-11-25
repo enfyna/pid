@@ -168,15 +168,33 @@ void graph_draw_bottom_pane(graph* g){
     }
     int section_width = g->pane.width / g->pane.section_count;
     for (int i = 0; i < g->pane.section_count; i++) {
-        DrawText(
-            TextFormat("%s:\n\n%f", g->pane.names[i], *g->pane.values[i]),
-            g->pane.pos_x + section_width * i, g->pane.pos_y,
-            24,
-            WHITE
+        int pos_x = g->pane.pos_x + section_width * i;
+        int pos_y = g->pane.pos_y;
+        const char *val_str = TextFormat("%lf", *g->pane.values[i]);
+        Vector2 size_name = MeasureTextEx(
+            g->font, g->pane.names[i], g->font_size, 0
         );
-        DrawLine(
-            g->pane.pos_x + section_width * i, g->pane.pos_y,
-            g->pane.pos_x + section_width * i, g->pane.pos_y + g->pane.height,
+        Vector2 size_value = MeasureTextEx(
+            g->font, val_str, g->font_size, 0
+        );
+        float padding = (g->pane.height - (size_name.y + size_value.y)) / 2;
+        if (padding <= 2) {
+            g->font_size -= 0.1;
+            return;
+        }
+        DrawText(g->pane.names[i],
+            pos_x + padding,
+            pos_y + padding,
+            g->font_size, WHITE
+        );
+        DrawText(val_str,
+            pos_x + padding,
+            pos_y + padding + size_value.y,
+            g->font_size, WHITE
+        );
+        DrawLineV(
+            (Vector2){ pos_x, pos_y },
+            (Vector2){ pos_x, pos_y + g->pane.height },
             g->border_color
         );
     }
@@ -310,6 +328,9 @@ void graph_free(graph* g){
 graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...){
     graph* g = malloc(sizeof(graph));
 
+    g->font = GetFontDefault();
+    g->font_size = 24;
+
     va_list ap;
     va_start(ap, border_color);
 
@@ -340,7 +361,7 @@ graph* get_graph_null(int margin, int width, int height, Color color, Color bord
     g->w_width = width;
     g->w_height = height;
 
-    if (g->pane.section_count > 0 && g->margin * 3 >= 60) {
+    if (g->pane.section_count > 0) {
         g->height = height - g->margin * 6;
         g->width = width - g->margin * 2;
 

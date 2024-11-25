@@ -48,6 +48,8 @@ typedef struct {
     Color color;
     Color border_color;
     bottom_pane pane;
+    Font font;
+    int font_size;
 } graph;
 
 graph* get_graph_null(int margin, int width, int height, Color color, Color border_color, ...);
