@@ -1,5 +1,6 @@
 
 #include "car.h"
+#include <string.h>
 
 static void _get_toyota_trueno_power_curve(car* c);
 
@@ -8,6 +9,7 @@ car* get_toyota_trueno(){
     const int MAX_RPM = 8000;
 
     car* toyota = _init_car(MAX_RPM, GEAR_COUNT);
+    memcpy(toyota->name, "Toyota Trueno", 14);
 
     toyota->mass = 1089;
     toyota->wheel_radius = 1.0;

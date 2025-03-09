@@ -1,5 +1,6 @@
 
 #include "car.h"
+#include <string.h>
 
 static void _get_corvette_c5_power_curve(car* c);
 
@@ -8,6 +9,7 @@ car* get_corvette_c5() {
     const int MAX_RPM = 8000;
 
     car *corvette = _init_car(MAX_RPM, GEAR_COUNT);
+    memcpy(corvette->name, "Corvette C5", 12);
 
     corvette->mass = 1500;
     corvette->gear_shift_time = 2;

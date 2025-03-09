@@ -29,7 +29,7 @@ void run_sim(car* c, pid* p, int sim_time, line* speed_line, line* rpm_line, lin
     for (int i = 0; i < sim_time; i++) {
         simulate(c, 0.1);
         speed_line->points[i] = (Vector2){ i, c->current.velocity * 3.6 };
-        gear_line->points[i] = (Vector2){ i, (c->input.gear - 1) * 10 };
+        gear_line->points[i] = (Vector2){ i, (c->input.gear) * 10 };
         rpm_line->points[i] = (Vector2){ i, c->current.rpm / 100.0 };
         throttle_line->points[i] = (Vector2){ i, c->input.throttle * 10 };
         run_pid(c, p, 0.1);
@@ -118,6 +118,7 @@ int main(int argc, char** argv){
     );
 
     car* c = get_car(selected_car);
+    g->car_name = c->name;
 
     line* speed_line = get_line(g, sim_time, "Speed (kmh)", PURPLE);
     line* rpm_line = get_line(g, sim_time, "RPM / 100.0", YELLOW);
@@ -222,6 +223,9 @@ int main(int argc, char** argv){
         run_sim(c, p, sim_time, speed_line, rpm_line, gear_line, throttle_line);
         screen_update(g, p, sim_time, &delta);
     }
+
+    free(p);
+    free_car(c);
     graph_free(g);
     CloseWindow();
     return 0;

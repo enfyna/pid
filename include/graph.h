@@ -47,6 +47,7 @@ typedef struct {
     lines lines;
     Color color;
     Color border_color;
+    char* car_name;
     bottom_pane pane;
     Font font;
     int font_size;

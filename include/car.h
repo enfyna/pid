@@ -16,6 +16,7 @@ typedef struct {
 } car_input;
 
 typedef struct {
+    char name[20];
     double max_rpm;
 
     float *power_curve;
@@ -34,7 +35,9 @@ typedef struct {
 car* get_car(const char* name);
 car* _init_car(int max_rpm, int gear_count);
 void simulate(car* car, double delta);
+void free_car(car* car);
 
 car* get_toyota_trueno();
 car* get_corvette_c5();
+car* get_rc_car();
 #endif // CAR_H

@@ -1,4 +1,4 @@
-CFLAGS= -Wall -Wextra -ggdb -I./include
+CFLAGS= -Wall -Wextra -ggdb -I./include -fsanitize=address
 
 # linux
 CC=clang

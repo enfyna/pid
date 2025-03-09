@@ -10,7 +10,7 @@
 #define REVERSE 0
 #define NEUTRAL 1
 
-static double max(double a, double b){
+double max(double a, double b){
     return a > b ? a : b;
 }
 
@@ -21,7 +21,7 @@ car* _init_car(int max_rpm, int gear_count){
     c->max_rpm = max_rpm;
     c->gear_count = gear_count;
 
-    c->power_curve = calloc(c->max_rpm, sizeof(float));
+    c->power_curve = calloc(c->max_rpm + 1, sizeof(float));
     c->gear_ratios = malloc(sizeof(double) * (c->gear_count + 2));
     assert(c->power_curve != NULL);
     assert(c->gear_ratios != NULL);
@@ -36,9 +36,17 @@ car* _init_car(int max_rpm, int gear_count){
 car* get_car(const char* name){
     if (!strcmp(name, "toyota_trueno")) {
         return get_toyota_trueno();
-    } else {
+    } else if(!strcmp(name, "corvette_c5")) {
         return get_corvette_c5();
+    } else {
+        return get_rc_car();
     }
+}
+
+void free_car(car* car){
+    free(car->power_curve);
+    free(car->gear_ratios);
+    free(car);
 }
 
 double calculate_rpm(car* c){
@@ -55,8 +63,11 @@ double calculate_rpm(car* c){
     return max(1000.0, rpm);
 }
 
-static double _calculate_engine_force(car* c){
+double _calculate_engine_force(car* c){
     c->current.rpm = calculate_rpm(c);
+    if (c->current.rpm >= c->max_rpm) {
+        c->current.rpm = c->max_rpm - 1;
+    }
     const double power_factor = c->input.throttle
         * c->power_curve[(int)c->current.rpm]
     ;

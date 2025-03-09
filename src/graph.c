@@ -158,6 +158,12 @@ void graph_draw_grid(graph *g){
 
 void graph_draw_bottom_pane(graph* g){
     DrawText(
+        TextFormat("Selected Car: %s", g->car_name),
+        g->margin + 5, g->margin + g->height - 25, 
+        18, WHITE
+    );
+
+    DrawText(
         TextFormat("%%%.2lf", g->scale),
         g->margin + g->width - 75, g->margin + g->height - 25, 
         24, WHITE
@@ -320,8 +326,10 @@ void graph_zoom(graph* g, double zoom, double delta){
 
 void graph_free(graph* g){
     for (int i = 0; i < g->lines.count; i++) {
-        free(g->lines.items[i]);
+        free(g->lines.items[i]->points);
+        free(g->lines.items[i]); 
     }
+    free(g->lines.items);
     free(g);
 }
 
